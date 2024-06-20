@@ -1,16 +1,19 @@
 {
-  "name": "backend",
-  "private": true,
-  "scripts": {
-    "dev": "wrangler dev src/index.ts",
-    "deploy": "wrangler deploy --minify src/index.ts"
-  },
-  "dependencies": {
-    "hono": "^4.4.7"
-  },
-  "devDependencies": {
-    "@cloudflare/workers-types": "^4.20240529.0",
-    "wrangler": "^3.57.2",
-    "typescript": "5.5.1-rc"
-  }
+	"name": "backend",
+	"private": true,
+	"scripts": {
+		"dev": "wrangler dev src/index.ts",
+		"deploy": "wrangler deploy --minify src/index.ts",
+		"typegen": "pnpm wrangler types"
+	},
+	"dependencies": {
+		"@hono/valibot-validator": "^0.3.0",
+		"hono": "^4.4.7",
+		"valibot": "^0.33.3"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20240529.0",
+		"typescript": "5.5.1-rc",
+		"wrangler": "^3.57.2"
+	}
 }

@@ -27,6 +27,7 @@ const entryPoints = glob.sync("./src/**/*.ts", {
 const addExtension = (extension = ".js", fileExtension = ".ts"): Plugin => ({
 	name: "add-extension",
 	setup(build: PluginBuild) {
+		// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: This is a simple plugin
 		build.onResolve({ filter: /.*/ }, (args) => {
 			if (args.importer) {
 				const p = path.join(args.resolveDir, args.path);

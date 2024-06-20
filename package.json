@@ -1,39 +1,39 @@
 {
-  "name": "justshare",
-  "version": "0.0.0",
-  "description": "A template for creating a new Biome project",
-  "author": "inaridiy",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/inaridiy/template-202406.git"
-  },
-  "homepage": "https://github.com/inaridiy/template-202406#readme",
-  "bugs": "https://github.com/inaridiy/template-202406/issues",
-  "keywords": [],
-  "private": true,
-  "packageManager": "pnpm@9.1.4",
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "scripts": {
-    "test": "vitest",
-    "format": "biome format . --write",
-    "lint": "biome check .",
-    "lint:fix": "pnpm lint --apply",
-    "lint:repo": "sherif",
-    "build": "pnpm run --r --filter \"./packages/**\" build",
-    "dev": "pnpm run --r --filter \"./apps/**\" dev",
-    "preinstall": "npx only-allow pnpm",
-    "prepare": "pnpm simple-git-hooks",
-    "postinstall": "pnpm -w build"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "1.8.1",
-    "sherif": "^0.8.4",
-    "simple-git-hooks": "^2.11.1",
-    "vitest": "1.3.0"
-  },
-  "simple-git-hooks": {
-    "pre-commit": "pnpm format && pnpm lint:fix && pnpm lint:repo"
-  }
+	"name": "justshare",
+	"version": "0.0.0",
+	"description": "A template for creating a new Biome project",
+	"author": "inaridiy",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/inaridiy/template-202406.git"
+	},
+	"homepage": "https://github.com/inaridiy/template-202406#readme",
+	"bugs": "https://github.com/inaridiy/template-202406/issues",
+	"keywords": [],
+	"private": true,
+	"packageManager": "pnpm@9.1.4",
+	"engines": {
+		"node": ">=18.0.0"
+	},
+	"scripts": {
+		"test": "vitest",
+		"format": "biome format . --write",
+		"lint": "biome check .",
+		"lint:fix": "pnpm lint --apply",
+		"lint:repo": "sherif",
+		"build": "pnpm run --r --filter \"./packages/**\" build",
+		"dev": "pnpm run --r --filter \"./apps/**\" dev",
+		"preinstall": "npx only-allow pnpm",
+		"prepare": "pnpm simple-git-hooks",
+		"postinstall": "pnpm -w build"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "1.8.1",
+		"sherif": "^0.8.4",
+		"simple-git-hooks": "^2.11.1",
+		"vitest": "1.3.0"
+	},
+	"simple-git-hooks": {
+		"pre-commit": "pnpm format && pnpm lint:fix && pnpm lint:repo"
+	}
 }
