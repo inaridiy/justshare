@@ -24,8 +24,7 @@
 		"build": "pnpm run --r --filter \"./packages/**\" build",
 		"dev": "pnpm run --r --filter \"./apps/**\" dev",
 		"preinstall": "npx only-allow pnpm",
-		"prepare": "pnpm simple-git-hooks",
-		"postinstall": "pnpm -w build"
+		"prepare": "pnpm simple-git-hooks"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.8.1",

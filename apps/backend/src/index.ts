@@ -83,11 +83,7 @@ const routes = app
 
 		if (!file) return c.text("Not found", 404);
 
-		c.header("etag", file.etag);
-		const response = c.body(file.body);
-
-		file.writeHttpMetadata(response.headers);
-		return response;
+		return c.body(file.body);
 	})
 	.delete("/:id", async (c) => {
 		const id = c.req.param("id");
