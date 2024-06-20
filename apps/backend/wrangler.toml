@@ -1,4 +1,4 @@
-name = "backend"
+name = "justshare-api"
 compatibility_date = "2023-12-01"
 
 # [vars]

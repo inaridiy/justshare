@@ -1,5 +1,5 @@
 {
-	"name": "backend",
+	"name": "justshare-api",
 	"main": "src/index.ts",
 
 	"scripts": {
