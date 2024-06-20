@@ -1,1 +1,1 @@
-export type AsRecord<T> = { [key in keyof T]: T[key] };
+export type AsRecord<T> = { [K in keyof T]: T[K] };

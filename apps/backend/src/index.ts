@@ -1,19 +1,32 @@
 import { vValidator } from "@hono/valibot-validator";
 import { Hono } from "hono";
-import v from "valibot";
+import { createMiddleware } from "hono/factory";
+// biome-ignore lint/style/noNamespaceImport: Simple is better than complex
+import * as v from "valibot";
 import type { AsRecord } from "./utils/types";
 
 // biome-ignore lint/style/useNamingConvention: This is a Hono specific type
 const app = new Hono<{ Bindings: AsRecord<Env> }>();
 
+const rateLimiter = createMiddleware(async (c, next) => {
+	const ipAddress = c.req.header("cf-connecting-ip") ?? "unknown";
+	const { success } = await c.env.RATE_LIMITER.limit({ key: ipAddress });
+	if (!success) return c.json({ success: false, error: "Rate limit exceeded" }, 429);
+
+	await next();
+});
+
+const MAX_PART_SIZE = 1024 * 1024 * 1024 * 128; // 128GB
+
 const routes = app
-	.post("/:id/create", async (c) => {
+	.post("/:id/create", rateLimiter, async (c) => {
 		const id = c.req.param("id");
-		const { key, uploadId } = await c.env.DRIVE_BUCKET.createMultipartUpload(id);
+		const { key, uploadId } = await c.env.DRIVE_BUCKET.createMultipartUpload(`justshare:${id}`);
 		return c.json({ mpu: { key, uploadId } });
 	})
 	.post(
 		"/:id/complete",
+		rateLimiter,
 		vValidator("query", v.object({ uploadId: v.string() })),
 		vValidator("json", v.object({ parts: v.array(v.object({ partNumber: v.number(), etag: v.string() })) })),
 		async (c) => {
@@ -21,10 +34,15 @@ const routes = app
 			const { uploadId } = c.req.valid("query");
 			const { parts } = c.req.valid("json");
 
-			const mpu = await c.env.DRIVE_BUCKET.resumeMultipartUpload(id, uploadId);
-
+			const mpu = await c.env.DRIVE_BUCKET.resumeMultipartUpload(`justshare:${id}`, uploadId);
 			try {
 				const uploaded = await mpu.complete(parts);
+
+				if (uploaded.size > MAX_PART_SIZE) {
+					await c.env.DRIVE_BUCKET.delete(`justshare:${id}`);
+					return c.json({ success: false, error: "File too large" }, 400);
+				}
+
 				c.header("etag", uploaded.etag);
 				return c.json({ success: true, size: uploaded.size });
 			} catch (e) {
@@ -34,6 +52,7 @@ const routes = app
 	)
 	.put(
 		"/:id/upload",
+		rateLimiter,
 		vValidator(
 			"query",
 			v.object({
@@ -48,8 +67,7 @@ const routes = app
 
 			if (!payload) return c.json({ success: false, error: "No body provided" }, 400);
 
-			const mpu = await c.env.DRIVE_BUCKET.resumeMultipartUpload(id, uploadId);
-
+			const mpu = await c.env.DRIVE_BUCKET.resumeMultipartUpload(`justshare:${id}`, uploadId);
 			try {
 				const part = await mpu.uploadPart(Number(partNumber), payload);
 				return c.json({ success: true, part });
@@ -61,7 +79,7 @@ const routes = app
 	.get("/:id", async (c) => {
 		const id = c.req.param("id");
 
-		const file = await c.env.DRIVE_BUCKET.get(id);
+		const file = await c.env.DRIVE_BUCKET.get(`justshare:${id}`);
 
 		if (!file) return c.text("Not found", 404);
 
@@ -73,7 +91,7 @@ const routes = app
 	})
 	.delete("/:id", async (c) => {
 		const id = c.req.param("id");
-		await c.env.DRIVE_BUCKET.delete(id);
+		await c.env.DRIVE_BUCKET.delete(`justshare:${id}`);
 		return c.json({ success: true });
 	});
 
