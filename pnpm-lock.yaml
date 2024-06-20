@@ -44,22 +44,29 @@ importers:
         version: 3.61.0(@cloudflare/workers-types@4.20240614.0)
 
   packages/cli:
+    dependencies:
+      arg:
+        specifier: ^5.0.2
+        version: 5.0.2
+      backend:
+        specifier: workspace:*
+        version: link:../../apps/backend
+      chalk:
+        specifier: ^5.3.0
+        version: 5.3.0
+      hono:
+        specifier: ^4.4.7
+        version: 4.4.7
+      nanoid:
+        specifier: ^5.0.7
+        version: 5.0.7
     devDependencies:
       '@types/node':
         specifier: ^20.14.6
         version: 20.14.6
-      arg:
-        specifier: ^5.0.2
-        version: 5.0.2
       esbuild:
         specifier: ^0.21.5
         version: 0.21.5
-      glob:
-        specifier: ^10.4.2
-        version: 10.4.2
-      ncp:
-        specifier: ^2.0.0
-        version: 2.0.0
       rimraf:
         specifier: ^5.0.7
         version: 5.0.7
@@ -659,6 +666,10 @@ packages:
     resolution: {integrity: sha512-13sOfMv2+DWduEU+/xbun3LScLoqN17nBeTLUsmDfKdoiC1fr0n9PU4guu4AhRcOVFk/sW8LyZWHuhWtQZiF+g==}
     engines: {node: '>=4'}
 
+  chalk@5.3.0:
+    resolution: {integrity: sha512-dLitG79d+GV1Nb/VYcCDFivJeK1hiukt9QjRNVOsUtTy1rR1YJsmpGGTZ3qJos+uw7WmWF4wUwBd9jxjocFC2w==}
+    engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
+
   check-error@1.0.3:
     resolution: {integrity: sha512-iKEoDYaRmd1mxM90a2OEfWhjsjPpYPuQ+lMYsoxB126+t8fw7ySEO48nmDg5COTjxDI65/Y2OWpeEHk3ZOe8zg==}
 
@@ -895,8 +906,9 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
-  ncp@2.0.0:
-    resolution: {integrity: sha512-zIdGUrPRFTUELUvr3Gmc7KZ2Sw/h1PiVM0Af/oHB6zgnV1ikqSfRk+TOufi79aHYCW3NiOXmr1BP5nWbzojLaA==}
+  nanoid@5.0.7:
+    resolution: {integrity: sha512-oLxFY2gd2IqnjcYyOXD8XGCftpGtZP2AbHbOkthDkvRywH5ayNtPVy9YlOPcHckXzbLTCHpkb7FB+yuxKV13pQ==}
+    engines: {node: ^18 || >=20}
     hasBin: true
 
   node-fetch-native@1.6.4:
@@ -1673,6 +1685,8 @@ snapshots:
       pathval: 1.1.1
       type-detect: 4.0.8
 
+  chalk@5.3.0: {}
+
   check-error@1.0.3:
     dependencies:
       get-func-name: 2.0.2
@@ -1943,7 +1957,7 @@ snapshots:
 
   nanoid@3.3.7: {}
 
-  ncp@2.0.0: {}
+  nanoid@5.0.7: {}
 
   node-fetch-native@1.6.4: {}
 

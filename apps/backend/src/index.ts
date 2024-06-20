@@ -22,7 +22,7 @@ const routes = app
 	.post("/:id/create", rateLimiter, async (c) => {
 		const id = c.req.param("id");
 		const { key, uploadId } = await c.env.DRIVE_BUCKET.createMultipartUpload(`justshare:${id}`);
-		return c.json({ mpu: { key, uploadId } });
+		return c.json({ mpu: { key, uploadId } }, 200);
 	})
 	.post(
 		"/:id/complete",
@@ -44,7 +44,7 @@ const routes = app
 				}
 
 				c.header("etag", uploaded.etag);
-				return c.json({ success: true, size: uploaded.size });
+				return c.json({ success: true, size: uploaded.size }, 200);
 			} catch (e) {
 				return c.json({ success: false, error: (e as Error).message }, 400);
 			}
@@ -70,7 +70,7 @@ const routes = app
 			const mpu = await c.env.DRIVE_BUCKET.resumeMultipartUpload(`justshare:${id}`, uploadId);
 			try {
 				const part = await mpu.uploadPart(Number(partNumber), payload);
-				return c.json({ success: true, part });
+				return c.json({ success: true, part }, 200);
 			} catch (e) {
 				return c.json({ success: false, error: (e as Error).message }, 400);
 			}
