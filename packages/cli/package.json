@@ -12,29 +12,13 @@
 	"homepage": "https://github.com/inaridiy/template-202406#readme",
 	"bugs": "https://github.com/inaridiy/template-202406/issues",
 	"scripts": {
-		"copy:package.cjs.json": "pnpm ncp ./package.cjs.json ./dist/cjs/package.json && pnpm ncp ./package.cjs.json ./dist/types/package.json ",
-		"clean": "rimraf dist",
-		"build": "pnpm clean && tsx ./build.ts && pnpm copy:package.cjs.json",
+		"clean": "rimraf bin",
+		"build": "pnpm clean && tsx ./build.ts",
 		"test": "echo \"Error: no test specified\"",
 		"prerelease": "pnpm build"
 	},
-	"files": ["dist", "!dist/types/**/*.js"],
-	"main": "dist/cjs/index.js",
-	"type": "module",
-	"module": "dist/index.js",
-	"types": "dist/types/index.d.ts",
-	"exports": {
-		".": {
-			"types": "./dist/types/index.d.ts",
-			"import": "./dist/index.js",
-			"require": "./dist/cjs/index.js"
-		}
-	},
-	"typesVersions": {
-		"*": {
-			"types": ["./dist/types/index.d.ts"]
-		}
-	},
+	"bin": "./bin",
+	"files": ["bin"],
 	"devDependencies": {
 		"@types/node": "^20.14.6",
 		"arg": "^5.0.2",
