@@ -37,6 +37,7 @@ export const upload = async (path: string) => {
 		Array.from({ length: totalParts }, (_, i) => i),
 		poolUpload,
 	);
+	console.log(uploadedPartsItr);
 	const uploadedParts = [];
 	for await (const part of uploadedPartsItr) uploadedParts.push(part);
 
