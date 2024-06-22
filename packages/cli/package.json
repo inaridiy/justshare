@@ -1,16 +1,16 @@
 {
-	"name": "jastshare",
+	"name": "niceshare",
 	"version": "0.0.0",
-	"description": "A template package",
+	"description": "A CLI tool for sharing files and text",
 	"author": "inaridiy",
 	"license": "MIT",
 	"keywords": [],
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/inaridiy/template-202406.git"
+		"url": "https://github.com/inaridiy/justshare.git"
 	},
-	"homepage": "https://github.com/inaridiy/template-202406#readme",
-	"bugs": "https://github.com/inaridiy/template-202406/issues",
+	"homepage": "https://github.com/inaridiy/justshare#readme",
+	"bugs": "https://github.com/inaridiy/justshare/issues",
 	"scripts": {
 		"clean": "rimraf bin",
 		"build": "pnpm clean && tsx ./build.ts",
