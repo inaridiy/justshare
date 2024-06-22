@@ -18,9 +18,12 @@
 		"prerelease": "pnpm build"
 	},
 	"bin": "./bin",
-	"files": ["bin"],
+	"files": [
+		"bin"
+	],
 	"devDependencies": {
 		"@types/inquirer": "^9.0.7",
+		"@types/mime-types": "^2.1.4",
 		"@types/node": "^20.14.6",
 		"@types/qrcode-terminal": "^0.12.2",
 		"@types/tiny-async-pool": "^2.0.3",
@@ -38,6 +41,7 @@
 		"hono": "^4.4.7",
 		"inquirer": "^9.2.23",
 		"justshare-api": "workspace:*",
+		"mime-types": "^2.1.35",
 		"nanoid": "^5.0.7",
 		"ora": "^8.0.1",
 		"picocolors": "^1.0.1",

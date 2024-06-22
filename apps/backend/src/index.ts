@@ -6,8 +6,9 @@ import { createMiddleware } from "hono/factory";
 import * as v from "valibot";
 import type { AsRecord } from "./utils/types";
 
-const fileMetadataSChema = v.object({
+const FileMetadataSchema = v.object({
 	filename: v.string(),
+	contentType: v.string(),
 	password: v.optional(v.string()),
 });
 
@@ -29,16 +30,16 @@ const routes = app
 	.post(
 		"/:id/create",
 		rateLimiter,
-		vValidator("json", v.object({ filename: v.string(), password: v.optional(v.string()) })),
+		vValidator("json", v.object({ filename: v.string(), contentType: v.string(), password: v.optional(v.string()) })),
 		async (c) => {
 			const id = c.req.param("id");
-			const { filename, password } = c.req.valid("json");
+			const { filename, contentType, password } = c.req.valid("json");
 
 			const exists = await c.env.KV.get(`justshare:${id}`);
 			if (exists) return c.json({ success: false, error: "File already exists" }, 400);
 
-			const metadata = { filename, password };
-			const valid = v.parse(fileMetadataSChema, metadata);
+			const metadata = { filename, contentType, password };
+			const valid = v.parse(FileMetadataSchema, metadata);
 			await c.env.KV.put(`justshare:${id}`, JSON.stringify(valid), { expirationTtl: EXPIRATION_TTL });
 
 			const { key, uploadId } = await c.env.DRIVE_BUCKET.createMultipartUpload(`justshare:${id}`);
@@ -100,7 +101,7 @@ const routes = app
 	.get("/:id", async (c, next) => {
 		const id = c.req.param("id");
 		const mayBeMetadata = await c.env.KV.get(`justshare:${id}`).then((x) => x && JSON.parse(x));
-		const metadata = v.parse(fileMetadataSChema, mayBeMetadata);
+		const metadata = v.parse(FileMetadataSchema, mayBeMetadata);
 		if (!metadata) return c.text("Not found", 404);
 
 		if (metadata.password) {
@@ -111,6 +112,9 @@ const routes = app
 		const file = await c.env.DRIVE_BUCKET.get(`justshare:${id}`);
 
 		if (!file) return c.text("Not found", 404);
+
+		c.header("Content-Type", metadata.contentType);
+		c.header("Content-Disposition", `attachment; filename="${metadata.filename}"`);
 
 		return c.body(file.body);
 	})

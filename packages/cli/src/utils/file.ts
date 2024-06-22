@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path, { resolve } from "node:path";
+import mime from "mime-types";
 import { PART_SIZE } from "../constants";
 
 export const validatePath = async (filePath: string) => {
@@ -11,9 +12,19 @@ export const validatePath = async (filePath: string) => {
 export const getFileStats = async (filePath: string) => {
 	const stats = await fs.stat(filePath);
 	return {
-		filename: path.basename(filePath),
 		size: stats.size,
 		totalParts: Math.ceil(stats.size / PART_SIZE),
+	};
+};
+
+export const getFileMetadata = async (filePath: string) => {
+	const stats = await getFileStats(filePath);
+
+	return {
+		filename: path.basename(filePath),
+		contentType: mime.lookup(path.extname(filePath).toLowerCase()) || "application/octet-stream",
+		size: stats.size,
+		totalParts: stats.totalParts,
 	};
 };
 

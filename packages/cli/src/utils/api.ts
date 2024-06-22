@@ -5,9 +5,15 @@ import type { UploadedPart } from "../types";
 
 export const client = hc<AppType>(API_URL);
 
-export const createUpload = async (fileId: string, filename: string, password: string | undefined) => {
-	const result = await client[":id"].create.$post({ param: { id: fileId }, json: { filename, password } });
-	if (!result.ok) throw new Error("Failed to create file");
+export const createUpload = async (
+	fileId: string,
+	metadata: { filename: string; contentType: string; password: string | undefined },
+) => {
+	const result = await client[":id"].create.$post({ param: { id: fileId }, json: { ...metadata } });
+	if (!result.ok) {
+		console.error(await result.text());
+		throw new Error("Failed to create file");
+	}
 	return result.json();
 };
 

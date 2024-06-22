@@ -5,7 +5,7 @@ import pc from "picocolors";
 import qrcode from "qrcode-terminal";
 import asyncPool from "tiny-async-pool";
 import { completeUpload, createUpload, getDownloadUrl, uploadPart } from "../utils/api";
-import { getFileStats, readFilePart, validatePath } from "../utils/file";
+import { getFileMetadata, readFilePart, validatePath } from "../utils/file";
 import { retry } from "../utils/retry";
 
 export const upload = async (path: string, password: string | undefined) => {
@@ -18,9 +18,9 @@ export const upload = async (path: string, password: string | undefined) => {
 		const s = spinner();
 		s.start("Initializing upload");
 
-		const { totalParts, size: fileSize, filename } = await getFileStats(fullPath);
+		const { totalParts, size: fileSize, filename, contentType } = await getFileMetadata(fullPath);
 
-		const { mpu } = await createUpload(fileId, filename, password);
+		const { mpu } = await createUpload(fileId, { filename, contentType, password });
 		s.stop("Upload initialized");
 
 		const concurrency = 20;
