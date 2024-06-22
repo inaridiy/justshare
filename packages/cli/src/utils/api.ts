@@ -1,5 +1,5 @@
 import { hc } from "hono/client";
-import type { AppType } from "justshare-api";
+import type { AppType } from "../../../../apps/backend";
 import { API_URL } from "../constants";
 import type { UploadedPart } from "../types";
 
