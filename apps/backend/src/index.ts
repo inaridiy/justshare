@@ -1,12 +1,12 @@
 import { vValidator } from "@hono/valibot-validator";
 import { Hono } from "hono";
+import { basicAuth } from "hono/basic-auth";
 import { createMiddleware } from "hono/factory";
 // biome-ignore lint/style/noNamespaceImport: Simple is better than complex
 import * as v from "valibot";
 import type { AsRecord } from "./utils/types";
-import { basicAuth } from "hono/basic-auth";
 
-const FileMetadataSChema = v.object({
+const fileMetadataSChema = v.object({
 	filename: v.string(),
 	password: v.optional(v.string()),
 });
@@ -38,7 +38,7 @@ const routes = app
 			if (exists) return c.json({ success: false, error: "File already exists" }, 400);
 
 			const metadata = { filename, password };
-			const valid = v.parse(FileMetadataSChema, metadata);
+			const valid = v.parse(fileMetadataSChema, metadata);
 			await c.env.KV.put(`justshare:${id}`, JSON.stringify(valid), { expirationTtl: EXPIRATION_TTL });
 
 			const { key, uploadId } = await c.env.DRIVE_BUCKET.createMultipartUpload(`justshare:${id}`);
@@ -100,7 +100,7 @@ const routes = app
 	.get("/:id", async (c, next) => {
 		const id = c.req.param("id");
 		const mayBeMetadata = await c.env.KV.get(`justshare:${id}`).then((x) => x && JSON.parse(x));
-		const metadata = v.parse(FileMetadataSChema, mayBeMetadata);
+		const metadata = v.parse(fileMetadataSChema, mayBeMetadata);
 		if (!metadata) return c.text("Not found", 404);
 
 		if (metadata.password) {
