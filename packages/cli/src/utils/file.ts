@@ -1,16 +1,18 @@
 import fs from "node:fs/promises";
-import { resolve } from "node:path";
+import path, { resolve } from "node:path";
 import { PART_SIZE } from "../constants";
 
-export const validatePath = async (path: string) => {
-	const fullPath = await resolve(path);
+export const validatePath = async (filePath: string) => {
+	const fullPath = await resolve(filePath);
 	await fs.access(fullPath, fs.constants.R_OK);
 	return fullPath;
 };
 
-export const getFileStats = async (path: string) => {
-	const stats = await fs.stat(path);
+export const getFileStats = async (filePath: string) => {
+	const stats = await fs.stat(filePath);
 	return {
+		name: path.basename(filePath),
+		ext: path.extname(filePath),
 		size: stats.size,
 		totalParts: Math.ceil(stats.size / PART_SIZE),
 	};

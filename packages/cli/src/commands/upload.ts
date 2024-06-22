@@ -3,54 +3,85 @@ import { nanoid } from "nanoid";
 import ora from "ora";
 import pc from "picocolors";
 import asyncPool from "tiny-async-pool";
-import { completeUpload, createUpload, uploadPart } from "../utils/api";
+import qrcode from "qrcode-terminal";
+import { completeUpload, createUpload, getDownloadUrl, uploadPart } from "../utils/api";
 import { getFileStats, readFilePart, validatePath } from "../utils/file";
 import { retry } from "../utils/retry";
 
 export const upload = async (path: string) => {
-	intro(pc.bold("File Upload"));
+	try {
+		intro(pc.bold("File Upload"));
 
-	const fullPath = await validatePath(path);
-	const fileId = nanoid();
+		const fullPath = await validatePath(path);
+		const fileId = nanoid();
 
-	const s = spinner();
-	s.start("Initializing upload");
+		const s = spinner();
+		s.start("Initializing upload");
 
-	const { mpu } = await createUpload(fileId);
-	s.stop("Upload initialized");
+		const { mpu } = await createUpload(fileId);
+		s.stop("Upload initialized");
 
-	const { totalParts } = await getFileStats(fullPath);
+		const { totalParts, size: fileSize, name, ext } = await getFileStats(fullPath);
 
-	const uploadProgress = ora("Uploading file parts").start();
-	let uploadedPartsCount = 0;
+		const concurrency = 20;
+		const uploadProgress = ora(`Uploading file (0/${totalParts} parts, 0%))`).start();
+		let uploadedPartsCount = 0;
+		let uploadedBytes = 0;
 
-	const poolUpload = async (i: number) => {
-		const buffer = await readFilePart(fullPath, i);
-		const result = await retry(() => uploadPart(fileId, mpu.uploadId, i, buffer));
-		uploadedPartsCount++;
-		uploadProgress.text = `Uploading file parts (${uploadedPartsCount}/${totalParts})`;
-		return result;
-	};
+		const updateProgress = () => {
+			const percentage = ((uploadedPartsCount / totalParts) * 100).toFixed(2);
+			uploadProgress.text = `Uploading file (${uploadedPartsCount}/${totalParts} parts, ${percentage}%)`;
+		};
 
-	const uploadedPartsItr = await asyncPool(
-		20,
-		Array.from({ length: totalParts }, (_, i) => i),
-		poolUpload,
-	);
-	console.log(uploadedPartsItr);
-	const uploadedParts = [];
-	for await (const part of uploadedPartsItr) uploadedParts.push(part);
+		const poolUpload = async (i: number) => {
+			const buffer = await readFilePart(fullPath, i);
+			const result = await retry(() => uploadPart(fileId, mpu.uploadId, i, buffer));
+			uploadedPartsCount++;
+			uploadedBytes += buffer.length;
+			updateProgress();
+			return result;
+		};
 
-	uploadProgress.succeed("All parts uploaded");
+		const uploadedPartsItr = await asyncPool(
+			concurrency,
+			Array.from({ length: totalParts }, (_, i) => i),
+			poolUpload,
+		);
 
-	s.start("Completing upload");
-	const { size: uploadedSize } = await completeUpload(
-		fileId,
-		mpu.uploadId,
-		uploadedParts.map(({ part }) => part),
-	);
-	s.stop("Upload completed");
+		const uploadedParts = [];
+		for await (const part of uploadedPartsItr) {
+			uploadedParts.push(part);
+		}
 
-	log.success(`Uploaded ${uploadedSize} bytes`);
-	outro(pc.green("File upload completed successfully!"));
+		uploadProgress.succeed(`All parts uploaded (Size: ${pc.bold(uploadedBytes)} bytes)`);
+
+		s.start("Completing upload");
+		const { size: uploadedSize } = await completeUpload(
+			fileId,
+			mpu.uploadId,
+			uploadedParts.map(({ part }) => part),
+		);
+		s.stop("Upload completed");
+
+		log.success(`Uploaded ${uploadedSize} bytes`);
+		outro(pc.green("File upload completed successfully!"));
+
+		if (uploadedSize !== fileSize) {
+			log.warn(
+				pc.yellow(
+					`Warning: Uploaded size (${uploadedSize} bytes) differs from original file size (${fileSize} bytes).`,
+				),
+			);
+		}
+
+		const fileUrl = getDownloadUrl(fileId);
+		console.info(pc.cyan("\nScan this QR code to access the uploaded file:"));
+		qrcode.generate(fileUrl, { small: true }, (qrcode) => {
+			console.info(qrcode);
+		});
+		console.info(pc.dim(`Or use this link: ${fileUrl}`));
+	} catch (error) {
+		outro(pc.red("File upload failed"));
+		throw error; // Re-throw the error to be caught in the main CLI handler
+	}
 };

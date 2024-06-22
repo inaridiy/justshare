@@ -1,8 +1,8 @@
-import type { AppType } from "backend";
+import type { AppType } from "justshare-api";
 import { hc } from "hono/client";
 import type { UploadedPart } from "../types";
+import { API_URL } from "../constants";
 
-const API_URL = "http://localhost:8787";
 export const client = hc<AppType>(API_URL);
 
 export const createUpload = async (fileId: string) => {
@@ -29,4 +29,8 @@ export const completeUpload = async (fileId: string, uploadId: string, parts: Up
 	});
 	if (!result.ok) throw new Error(`Failed to complete file upload: ${await result.text()}`);
 	return result.json();
+};
+
+export const getDownloadUrl = (fileId: string) => {
+	return client[":id"].$url({ param: { id: fileId } }).toString();
 };
