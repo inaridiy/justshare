@@ -4,6 +4,9 @@ compatibility_date = "2023-12-01"
 # [vars]
 # MY_VAR = "my-variable"
 
+[[kv_namespaces]]
+binding = "KV"
+id = "086b0aeac0604abebae4d91ddbb0de24"
 
 [[r2_buckets]]
 binding = "DRIVE_BUCKET"

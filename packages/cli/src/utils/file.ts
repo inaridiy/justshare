@@ -11,8 +11,7 @@ export const validatePath = async (filePath: string) => {
 export const getFileStats = async (filePath: string) => {
 	const stats = await fs.stat(filePath);
 	return {
-		name: path.basename(filePath),
-		ext: path.extname(filePath),
+		filename: path.basename(filePath),
 		size: stats.size,
 		totalParts: Math.ceil(stats.size / PART_SIZE),
 	};

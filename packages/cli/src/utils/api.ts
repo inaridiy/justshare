@@ -1,12 +1,12 @@
-import type { AppType } from "justshare-api";
 import { hc } from "hono/client";
-import type { UploadedPart } from "../types";
+import type { AppType } from "justshare-api";
 import { API_URL } from "../constants";
+import type { UploadedPart } from "../types";
 
 export const client = hc<AppType>(API_URL);
 
-export const createUpload = async (fileId: string) => {
-	const result = await client[":id"].create.$post({ param: { id: fileId } });
+export const createUpload = async (fileId: string, filename: string, password: string | undefined) => {
+	const result = await client[":id"].create.$post({ param: { id: fileId }, json: { filename, password } });
 	if (!result.ok) throw new Error("Failed to create file");
 	return result.json();
 };

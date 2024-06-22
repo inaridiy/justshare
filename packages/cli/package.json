@@ -18,9 +18,7 @@
 		"prerelease": "pnpm build"
 	},
 	"bin": "./bin",
-	"files": [
-		"bin"
-	],
+	"files": ["bin"],
 	"devDependencies": {
 		"@types/inquirer": "^9.0.7",
 		"@types/node": "^20.14.6",

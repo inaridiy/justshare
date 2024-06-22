@@ -3,5 +3,6 @@
 
 interface Env {
 	DRIVE_BUCKET: R2Bucket;
+	KV: KVNamespace;
 	RATE_LIMITER: { limit({ key: string }): Promise<{ success: true }> };
 }

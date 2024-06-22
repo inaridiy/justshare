@@ -4,6 +4,12 @@ import { createMiddleware } from "hono/factory";
 // biome-ignore lint/style/noNamespaceImport: Simple is better than complex
 import * as v from "valibot";
 import type { AsRecord } from "./utils/types";
+import { basicAuth } from "hono/basic-auth";
+
+const FileMetadataSChema = v.object({
+	filename: v.string(),
+	password: v.optional(v.string()),
+});
 
 // biome-ignore lint/style/useNamingConvention: This is a Hono specific type
 const app = new Hono<{ Bindings: AsRecord<Env> }>();
@@ -17,13 +23,28 @@ const rateLimiter = createMiddleware(async (c, next) => {
 });
 
 const MAX_PART_SIZE = 1024 * 1024 * 1024 * 128; // 128GB
+const EXPIRATION_TTL = 60 * 60 * 24 * 7; // 7 days
 
 const routes = app
-	.post("/:id/create", rateLimiter, async (c) => {
-		const id = c.req.param("id");
-		const { key, uploadId } = await c.env.DRIVE_BUCKET.createMultipartUpload(`justshare:${id}`);
-		return c.json({ mpu: { key, uploadId } }, 200);
-	})
+	.post(
+		"/:id/create",
+		rateLimiter,
+		vValidator("json", v.object({ filename: v.string(), password: v.optional(v.string()) })),
+		async (c) => {
+			const id = c.req.param("id");
+			const { filename, password } = c.req.valid("json");
+
+			const exists = await c.env.KV.get(`justshare:${id}`);
+			if (exists) return c.json({ success: false, error: "File already exists" }, 400);
+
+			const metadata = { filename, password };
+			const valid = v.parse(FileMetadataSChema, metadata);
+			await c.env.KV.put(`justshare:${id}`, JSON.stringify(valid), { expirationTtl: EXPIRATION_TTL });
+
+			const { key, uploadId } = await c.env.DRIVE_BUCKET.createMultipartUpload(`justshare:${id}`);
+			return c.json({ mpu: { key, uploadId } }, 200);
+		},
+	)
 	.post(
 		"/:id/complete",
 		rateLimiter,
@@ -76,8 +97,16 @@ const routes = app
 			}
 		},
 	)
-	.get("/:id", async (c) => {
+	.get("/:id", async (c, next) => {
 		const id = c.req.param("id");
+		const mayBeMetadata = await c.env.KV.get(`justshare:${id}`).then((x) => x && JSON.parse(x));
+		const metadata = v.parse(FileMetadataSChema, mayBeMetadata);
+		if (!metadata) return c.text("Not found", 404);
+
+		if (metadata.password) {
+			const failResponse = await basicAuth({ username: "user", password: metadata.password })(c, next);
+			if (failResponse) return failResponse;
+		}
 
 		const file = await c.env.DRIVE_BUCKET.get(`justshare:${id}`);
 
@@ -87,6 +116,8 @@ const routes = app
 	})
 	.delete("/:id", async (c) => {
 		const id = c.req.param("id");
+
+		await c.env.KV.delete(`justshare:${id}`);
 		await c.env.DRIVE_BUCKET.delete(`justshare:${id}`);
 		return c.json({ success: true });
 	});

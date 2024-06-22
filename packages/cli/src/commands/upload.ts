@@ -2,13 +2,13 @@ import { intro, log, outro, spinner } from "@clack/prompts";
 import { nanoid } from "nanoid";
 import ora from "ora";
 import pc from "picocolors";
-import asyncPool from "tiny-async-pool";
 import qrcode from "qrcode-terminal";
+import asyncPool from "tiny-async-pool";
 import { completeUpload, createUpload, getDownloadUrl, uploadPart } from "../utils/api";
 import { getFileStats, readFilePart, validatePath } from "../utils/file";
 import { retry } from "../utils/retry";
 
-export const upload = async (path: string) => {
+export const upload = async (path: string, password: string | undefined) => {
 	try {
 		intro(pc.bold("File Upload"));
 
@@ -18,10 +18,10 @@ export const upload = async (path: string) => {
 		const s = spinner();
 		s.start("Initializing upload");
 
-		const { mpu } = await createUpload(fileId);
-		s.stop("Upload initialized");
+		const { totalParts, size: fileSize, filename } = await getFileStats(fullPath);
 
-		const { totalParts, size: fileSize, name, ext } = await getFileStats(fullPath);
+		const { mpu } = await createUpload(fileId, filename, password);
+		s.stop("Upload initialized");
 
 		const concurrency = 20;
 		const uploadProgress = ora(`Uploading file (0/${totalParts} parts, 0%))`).start();

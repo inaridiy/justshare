@@ -1,10 +1,10 @@
-import { Command } from "commander";
-import pc from "picocolors";
-import inquirer from "inquirer";
-import { version } from "../package.json";
-import { upload } from "./commands/upload";
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { Command } from "commander";
+import inquirer from "inquirer";
+import pc from "picocolors";
+import { version } from "../package.json";
+import { upload } from "./commands/upload";
 
 const program = new Command();
 
@@ -44,19 +44,29 @@ async function selectFile(startPath: string): Promise<string> {
 	return selected;
 }
 
+async function promptPassword(): Promise<string> {
+	const { password } = await inquirer.prompt([
+		{
+			type: "password",
+			name: "password",
+			message: "Enter a password for the file (leave empty for no password):",
+			mask: "*",
+		},
+	]);
+	return password;
+}
+
 program
 	.command("upload")
 	.description("Upload a file")
 	.argument("[path]", "Path to the file to upload")
-	.action(async (providedPath) => {
+	.option("-p, --password <password>", "Password to protect the file")
+	.action(async (providedPath, { password: providedPassword }: { password: string }) => {
 		try {
-			let filePath: string;
-			if (providedPath) {
-				filePath = path.resolve(providedPath);
-			} else {
-				filePath = await selectFile(process.cwd());
-			}
-			await upload(filePath);
+			const filePath = providedPath ? path.resolve(providedPath) : await selectFile(process.cwd());
+			const password = (providedPassword || (await promptPassword())).trim() || undefined;
+
+			await upload(filePath, password);
 		} catch (e) {
 			const error = e as Error;
 
